@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<sdf version="1.10">
+  <!--
+    A4 paper standing vertical: 210 mm wide (X) x 297 mm tall (Z), modelled 10 mm thick (Y)
+    (visual and collision match, so the lidar can still see the sheet almost edge-on).
+    The model origin is at the centre of the bottom edge, so a pose of z=0 puts it on the floor.
+
+    It is held upright by a light 4 mm wooden prop stick behind it (-Y side), running from
+    200 mm up the back of the sheet to the floor 55 mm behind it, like a picture-frame stand.
+    Sheet + stick are one rigid, very light (8 g) body:
+      * at rest the prop is stable (gravity alone cannot tip it),
+      * a push from the robot tips it over instead of shoving it along: the robot's bumper
+        bottom edge is at 0.05 m, where tipping over the stick foot needs ~0.88 x the prop's
+        weight while sliding the grippy feet (mu 1.5) needs 1.5 x; from the stick side it
+        tips forward over the sheet's bottom edge even more easily.
+  -->
+  <model name="mypaper">
+    <static>false</static>
+    <link name="sheet">
+      <pose>0 0 0.1485 0 0 0</pose>
+      <inertial>
+        <!-- sheet 5 g (80 g/m^2 * 0.06237 m^2) + stick 3 g; combined centre of mass and
+             inertia about it (computed with the parallel-axis theorem) -->
+        <pose>0 -0.01087 -0.01791 0 0 0</pose>
+        <mass>0.008</mass>
+        <inertia>
+          <ixx>5.318e-05</ixx><iyy>6.926e-05</iyy><izz>2.068e-05</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>-5.176e-06</iyz>
+        </inertia>
+      </inertial>
+      <!-- Sheet collision is 10 mm thick, same as the visual: thinner boxes let the
+           robot pass straight through the sheet at the 8 ms physics step.
+           It is split in two so the prop tips instead of being bulldozed:
+             * face  - slippery (mu 0.1), so the sheet can slide up the robot's bumper
+                       and rotate; with a grippy face it sticks to the robot and is pushed along
+             * edge  - a 4 mm strip along the bottom edge with floor grip (mu 1.5) -->
+      <collision name="collision">
+        <pose>0 0 0.002 0 0 0</pose>
+        <geometry><box><size>0.210 0.010 0.293</size></box></geometry>
+        <surface>
+          <friction><ode><mu>0.1</mu><mu2>0.1</mu2></ode></friction>
+        </surface>
+      </collision>
+      <collision name="bottom_edge_collision">
+        <pose>0 0 -0.1465 0 0 0</pose>
+        <geometry><box><size>0.210 0.010 0.004</size></box></geometry>
+        <surface>
+          <friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction>
+        </surface>
+      </collision>
+      <!-- Prop stick: 4 mm dia, 205.2 mm long, from (y=-0.003, z=0.200) on the back of the
+           sheet down to the floor at y=-0.055 (positions relative to the bottom edge). -->
+      <collision name="stick_collision">
+        <pose>0 -0.029 -0.04775 -0.25621 0 0</pose>
+        <geometry><cylinder><radius>0.002</radius><length>0.2052</length></cylinder></geometry>
+        <surface>
+          <friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode></friction>
+        </surface>
+      </collision>
+      <visual name="stick_visual">
+        <pose>0 -0.029 -0.04775 -0.25621 0 0</pose>
+        <geometry><cylinder><radius>0.002</radius><length>0.2052</length></cylinder></geometry>
+        <material>
+          <ambient>0.55 0.38 0.2 1</ambient>
+          <diffuse>0.55 0.38 0.2 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+      <visual name="visual">
+        <geometry><box><size>0.210 0.010 0.297</size></box></geometry>
+        <material>
+          <ambient>0.95 0.95 0.93 1</ambient>
+          <diffuse>0.95 0.95 0.93 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+      <!-- "I'm a Paper" printed on the +Y face: a single-sided textured panel
+           just off the sheet surface, visible only from that side. -->
+      <visual name="text_front">
+        <!-- rotated 180 deg about Y so the text is upright when seen from +Y -->
+        <pose>0 0.00506 0 0 3.14159265 0</pose>
+        <geometry><plane><normal>0 1 0</normal><size>0.210 0.297</size></plane></geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://mypaper/materials/textures/im_a_paper.png</albedo_map>
+            <metalness>0</metalness><roughness>0.9</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <!-- "I'm a Paper" printed on the -Y face: a single-sided textured panel
+           just off the sheet surface, visible only from that side. -->
+      <visual name="text_back">
+        <pose>0 -0.00506 0 0 0 0</pose>
+        <geometry><plane><normal>0 -1 0</normal><size>0.210 0.297</size></plane></geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <pbr><metal>
+            <albedo_map>model://mypaper/materials/textures/im_a_paper.png</albedo_map>
+            <metalness>0</metalness><roughness>0.9</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
